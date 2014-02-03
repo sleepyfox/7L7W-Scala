@@ -3,13 +3,18 @@ import scala.util.matching.Regex
 
 trait Censor {
   def censorString(string: String) : String = {
-    var myString = string
-    wordList.foreach { t =>
-      myString = t._1.replaceAllIn(myString, m => {
-        m.group(1) + t._2 + m.group(2)
-      })
-    }
-    myString
+    fn(wordList, string)
+  }
+
+  private def fn(wordList : Map[Regex, String], string : String) : String = wordList.size match {
+    case 0 => string
+    case _ => fn(wordList.tail, doReplace(wordList.head, string))
+  }
+
+  private def doReplace(replacementRegexTuple: (Regex, String), string: String) : String = {
+    replacementRegexTuple._1.replaceAllIn(string, m => {
+      m.group(1) + replacementRegexTuple._2 + m.group(2)
+    })
   }
 
   private def wordList : Map[Regex, String] = {
