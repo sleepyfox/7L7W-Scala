@@ -5,7 +5,11 @@ trait Censor {
     if(string.contains("Shoot")) {
       string.replace("Shoot", "Pucky")
     } else {
-      string
+      if (string.contains("shoot")) {
+        string.replace("shoot", "pucky")
+      } else {
+        string
+      }
     }
   }
 }
@@ -24,9 +28,15 @@ class TestCensor extends FunSpec with ShouldMatchers with Censor {
       }
     }
 
-    describe("when the string contains the word 'Shoot'") {
-      it("should replace the first word with 'Pucky'") {
-        censorString("Shoot the breeze") should be ("Pucky the breeze")
+    describe("when the string contains 'Shoot'") {
+      it("should replace it with 'Pucky'") {
+        censorString("Don't shoot the messenger") should be ("Don't pucky the messenger")
+      }
+
+      describe("when it's at the start") {
+        it("should replace the first word with 'Pucky'") {
+          censorString("Shoot the breeze") should be ("Pucky the breeze")
+        }
       }
     }
   }
