@@ -2,15 +2,12 @@ import org.scalatest._
 
 trait Censor {
   def censorString(string: String) : String = {
-    if(string.contains("Shoot")) {
-      string.replace("Shoot", "Pucky")
-    } else {
-      if (string.contains("shoot")) {
-        string.replace("shoot", "pucky")
-      } else {
-        string
-      }
+    val wordList = Map("Shoot" -> "Pucky", "shoot" -> "pucky")
+    var myString = string
+    wordList.foreach { t =>
+      myString = myString.replace(t._1, t._2)
     }
+    myString
   }
 }
 
