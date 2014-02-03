@@ -1,19 +1,34 @@
 import org.scalatest._
+import scala.util.matching.Regex
 
 trait Censor {
   def censorString(string: String) : String = {
-    val wordList = Map(
+    var myString = string
+    wordList.foreach { t =>
+      myString = t._1.replaceAllIn(myString, m => {
+        m.group(1) + t._2 + m.group(2)
+      })
+    }
+    myString
+  }
+
+  private def wordList : Map[Regex, String] = {
+    bareWordList.map( x => {
+      (makeMatcher(x._1), x._2)
+    })
+  }
+
+  private def bareWordList : Map[String, String] = {
+    Map(
       "Shoot" -> "Pucky",
       "shoot" -> "pucky",
       "Darn"  -> "Beans",
       "darn"  -> "beans"
     )
+  }
 
-    var myString = string
-    wordList.foreach { t =>
-      myString = myString.replace(t._1, t._2)
-    }
-    myString
+  private def makeMatcher(word : String) : Regex = {
+    ("(\\W?)" + word + "(\\W|\\z)").r
   }
 }
 
@@ -52,6 +67,27 @@ class TestCensor extends FunSpec with ShouldMatchers with Censor {
         it("should replace the first word with 'Beans'") {
           censorString("Darn my socks") should be ("Beans my socks")
         }
+      }
+    }
+
+    describe("when the string contains multiple curse words") {
+      it("should replace each of them") {
+        censorString("Shoot darn it son of a mother fudge") should
+          be("Pucky beans it son of a mother fudge")
+      }
+    }
+
+    describe("when the string contains curse words embedded in other words") {
+      it("should return the original string") {
+          censorString("And yet my socks remain undarned") should
+            be ("And yet my socks remain undarned")
+      }
+    }
+
+    describe("when the string ends with a curse word") {
+      it("should return the original string") {
+          censorString("Please don't shoot") should
+            be ("Please don't pucky")
       }
     }
   }
