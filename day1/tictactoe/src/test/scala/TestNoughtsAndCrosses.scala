@@ -1,78 +1,89 @@
 import org.scalatest._
 
 package NoughtsAndCrosses {
+	class Board() {
+		var places = List("", "", "", "", "", "", "", "", "")
+		var nextPlayer = "Noughts"
 
-	class BoardAnalyser(board : List[Int]) {
-		def hasWinner() = { 
-			if ((board(0) == 1 && board(1) == 1 && board(2) == 1) || 
-					(board(3) == 1 && board(4) == 1 && board(5) == 1) ||
-					(board(6) == 1 && board(7) == 1 && board(8) == 1))  
-				true 
-			else 
+		def isValidMove(position : Int) = { 
+			if (position < 0 || position > 9) 
+				false
+			else
+				(places(position) == "")
+		}
+
+		def getNextPlayer() = {
+			this.nextPlayer
+		}
+
+		def move(position : Int):Boolean = {
+			if (this.isValidMove(position)) {
+				this.places = this.places.updated(position, this.nextPlayer)
+				if (this.nextPlayer == "Noughts")
+					this.nextPlayer = "Crosses"
+				else
+					this.nextPlayer = "Noughts"
+				true
+			}
+			else
 				false
 		}
-		def nextPlayer() = {
-			val number_of_pieces = board.map(x => if (x > 0) 1 else 0).reduceLeft(_+_)
-			if (number_of_pieces % 2 == 0)
-				"noughts"
-			else
-				"crosses"
+
+		def move(ps : List[Int]):Boolean = {
+			ps.map( x => this.move(x) ).foldLeft(false)(_ || _)
 		}
+
+		def isTied() = { false }
 	}
 
-	class TestBoardAnalyser extends FunSpec with ShouldMatchers {
-		describe("A board analyser") {
-			describe("when presented with an empty board") {
-				it("should not have a winner") {
-					val EMPTY_BOARD = List(0, 0, 0, 0, 0, 0, 0, 0, 0)
-					val analyser = new BoardAnalyser(EMPTY_BOARD)
-		    	analyser.hasWinner should be (false)
-				}
-				it("the next player should be noughts") {
-					val EMPTY_BOARD = List(0, 0, 0, 0, 0, 0, 0, 0, 0)
-					val analyser = new BoardAnalyser(EMPTY_BOARD)
-		    	analyser.nextPlayer should be ("noughts")
-				}
+	class TestBoard extends FunSpec with ShouldMatchers {
+		describe("Given an empty board") {
+			var my_board = new Board()
+		
+			it("A move at position 0 should be valid") {
+				my_board.isValidMove(0) should be (true)
 			}
-			describe("when given a board with a single cross") {
-				it("should not have a winner") {
-					val BOARD_WITH_1X = List(1, 0, 0, 0, 0, 0, 0, 0, 0)
-					val analyser = new BoardAnalyser(BOARD_WITH_1X)
-		    	analyser.hasWinner should be (false)
-				}
-				it("the next player should be crosses") {
-					val BOARD_WITH_1_O = List(2, 0, 0, 0, 0, 0, 0, 0, 0)
-					val analyser = new BoardAnalyser(BOARD_WITH_1_O)
-		    	analyser.nextPlayer should be ("crosses")
-				}
+			it("A move at position 10 should be invalid") {
+				my_board.isValidMove(10) should be (false)				
 			}
-			describe("when given a board with a single nought") {
-				it("the next player should be crosses") {
-					val BOARD_WITH_1_O = List(2, 0, 0, 0, 0, 0, 0, 0, 0)
-					val analyser = new BoardAnalyser(BOARD_WITH_1_O)
-		    	analyser.nextPlayer should be ("crosses")
-				}
+			it("A move at position -1 should be invalid") {
+				my_board.isValidMove(-1) should be (false)				
 			}
-			describe("when given a board with a line of crosses on the top row") {
-				it("should have a winner") {
-					val BOARD_WITH_TOP_ROW_XS = List(1, 1, 1, 0, 0, 0, 0, 0, 0)
-					val analyser = new BoardAnalyser(BOARD_WITH_TOP_ROW_XS)
-					analyser.hasWinner should be (true)
-				}
+			it("The next player to move should be Noughts") {
+				my_board.getNextPlayer() should equal ("Noughts")
 			}
-			describe("when given a board with a line of crosses on the middle row") {
-				it("should have a winner") {
-					val BOARD_WITH_MIDDLE_ROW_XS = List(0, 0, 0, 1, 1, 1, 0, 0, 0)
-					val analyser = new BoardAnalyser(BOARD_WITH_MIDDLE_ROW_XS)
-					analyser.hasWinner should be (true)
-				}
+		}
+
+		describe("Given a board with one Nought at position 0") {
+			val my_board = new Board()
+			my_board.move(0)
+
+			it("A move at position 1 is valid") {
+				my_board.isValidMove(1) should be (true)				
 			}
-			describe("when given a board with a line of crosses on the bottom row") {
-				it("should have a winner") {
-					val BOARD_WITH_BOTTOM_ROW_XS = List(1, 1, 1, 0, 0, 0, 0, 0, 0)
-					val analyser = new BoardAnalyser(BOARD_WITH_BOTTOM_ROW_XS)
-					analyser.hasWinner should be (true)
-				}
+			it("A move at position 0 is invalid") {
+				my_board.isValidMove(0) should be (false)		
+			}
+			it("the next player should be Crosses") {
+				my_board.getNextPlayer() should equal ("Crosses")				
+			}
+		}
+
+		describe("Given a board O--X-----") {
+			val my_board = new Board()
+			my_board.move(0 :: 3 :: List()) 
+
+			it("the next player should be Noughts") {
+				my_board.getNextPlayer should equal ("Noughts")
+			}
+			it("a move at position 2 should be valid") {
+				my_board.isValidMove(2) should be (true)
+			}
+			it("a move at position 3 should be invalid") {
+				my_board.isValidMove(3) should be (false)
+			}
+			it("the game should not be a tie") {
+				my_board.isTied() should be (false)
 			}
 		}
 	}
