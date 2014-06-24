@@ -65,14 +65,8 @@ trait CensorFromFile {
   }
 
   def bareWordList : Map[String, String] = {
-    val lines = fromFile("words.csv", "utf-8").getLines;
-    var m : Map[String, String] = Map()
-    def splitter(x: String) = {
-      val arr = x.split(",") 
-      m += arr(0) -> arr(1)
-    }
-    lines.foreach(x => splitter(x))
-    m
+    val lines = fromFile("words.csv", "utf-8").mkString.split("\n")
+    lines.map(t => t.split(",")(0) -> t.split(",")(1)).toMap
   }
 }
 
