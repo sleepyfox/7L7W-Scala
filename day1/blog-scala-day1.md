@@ -58,4 +58,4 @@ You can run 'sbt test' from the command line or enter SBT's interactive mode by 
 * Bonus to previous exercise: let two players play noughts-and-crosses
 
 ## Noughts and Crosses
-You can find the repo with the code that I wrote for this on github [here]()
+You can find the repo with the code that I wrote for this on github [here](https://github.com/sleepyfox/7L7W-Scala/tree/master/day1/tictactoe)
