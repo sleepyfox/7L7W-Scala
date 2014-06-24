@@ -2,38 +2,51 @@ import org.scalatest._
 
 package NoughtsAndCrosses {
 	class Board() {
+	  val NOUGHTS = "Noughts"
+	  val CROSSES = "Crosses"
+	  val EMPTY = ""
 		var places = List("", "", "", "", "", "", "", "", "")
-		var nextPlayer = "Noughts"
+		var nextPlayer = NOUGHTS
 
 		def isValidMove(position : Int) = { 
 			if (position < 0 || position > 9) 
 				false
 			else
-				(places(position) == "")
+				(places(position) == EMPTY)
 		}
 
 		def getNextPlayer() = {
 			this.nextPlayer
 		}
 
-		def move(position : Int):Boolean = {
+		def move(position : Int) : Boolean = {
 			if (this.isValidMove(position)) {
 				this.places = this.places.updated(position, this.nextPlayer)
-				if (this.nextPlayer == "Noughts")
-					this.nextPlayer = "Crosses"
+				if (this.nextPlayer == NOUGHTS)
+					this.nextPlayer = CROSSES
 				else
-					this.nextPlayer = "Noughts"
+					this.nextPlayer = NOUGHTS
 				true
 			}
 			else
 				false
 		}
 
-		def move(ps : List[Int]):Boolean = {
+		def move(ps : List[Int]) : Boolean = {
 			ps.map( x => this.move(x) ).foldLeft(false)(_ || _)
 		}
 
 		def isTied() = { false }
+
+		def isWin() = { if (this.winner() != "") true else false }
+
+		def winner() = { if (this.places(0) == NOUGHTS &&
+			this.places(1) == NOUGHTS &&
+			this.places(2) == NOUGHTS) 
+				NOUGHTS
+			else
+				""
+		}
 	}
 
 	class TestBoard extends FunSpec with ShouldMatchers {
@@ -52,6 +65,13 @@ package NoughtsAndCrosses {
 			it("The next player to move should be Noughts") {
 				my_board.getNextPlayer() should equal ("Noughts")
 			}
+			it("There should not be a winner") {
+				my_board.winner() should equal ("")
+				my_board.isWin() should equal (false)
+			}
+			it("the game should not be a tie") {
+				my_board.isTied() should be (false)
+			}
 		}
 
 		describe("Given a board with one Nought at position 0") {
@@ -66,6 +86,13 @@ package NoughtsAndCrosses {
 			}
 			it("the next player should be Crosses") {
 				my_board.getNextPlayer() should equal ("Crosses")				
+			}
+			it("There should not be a winner") {
+				my_board.winner() should equal ("")
+				my_board.isWin() should equal (false)
+			}
+			it("the game should not be a tie") {
+				my_board.isTied() should be (false)
 			}
 		}
 
@@ -84,6 +111,19 @@ package NoughtsAndCrosses {
 			}
 			it("the game should not be a tie") {
 				my_board.isTied() should be (false)
+			}
+		}
+
+		describe("Given a board OOOXX----") {
+			val my_board = new Board()
+			my_board.move(0 :: 3 :: 1 :: 4 :: 2 :: List())
+
+			it("the game should not be a tie") {
+				my_board.isTied() should be (false)
+			}
+			it("should be a win for Noughts") {
+				my_board.isWin() should be (true)
+				my_board.winner() should be ("Noughts")
 			}
 		}
 	}
