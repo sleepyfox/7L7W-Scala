@@ -2,7 +2,27 @@ import org.scalatest._
 import scala.util.matching.Regex
 import scala.io.Source.fromFile 
 
+trait staticWords {
+  def bareWordList : Map[String, String] = {
+    Map(
+      "Shoot" -> "Pucky",
+      "shoot" -> "pucky",
+      "Darn"  -> "Beans",
+      "darn"  -> "beans"
+    )
+  }
+}
+
+trait wordsFromFile {
+  def bareWordList : Map[String, String] = {
+    val lines = fromFile("words.csv", "utf-8").mkString.split("\n")
+    lines.map(t => t.split(",")(0) -> t.split(",")(1)).toMap
+  }
+}
+
 trait Censor {
+  def bareWordList : Map[String, String]
+
   def censorString(string: String) : String = {
     fn(wordList, string)
   }
@@ -24,54 +44,16 @@ trait Censor {
     })
   }
 
-  private def bareWordList : Map[String, String] = {
-    Map(
-      "Shoot" -> "Pucky",
-      "shoot" -> "pucky",
-      "Darn"  -> "Beans",
-      "darn"  -> "beans"
-    )
-  }
-
   private def makeMatcher(word : String) : Regex = {
     ("(\\W?)" + word + "(\\W|\\z)").r
   }
 }
 
-trait CensorFromFile {
-    def censorString(string: String) : String = {
-    fn(wordList, string)
-  }
+trait StaticCensor extends Censor with staticWords {}
 
-  private def fn(wordList : Map[Regex, String], string : String) : String = wordList.size match {
-    case 0 => string
-    case _ => fn(wordList.tail, doReplace(wordList.head, string))
-  }
+trait FileCensor extends Censor with wordsFromFile {}
 
-  private def doReplace(replacementRegexTuple: (Regex, String), string: String) : String = {
-    replacementRegexTuple._1.replaceAllIn(string, m => {
-      m.group(1) + replacementRegexTuple._2 + m.group(2)
-    })
-  }
-
-  private def wordList : Map[Regex, String] = {
-    bareWordList.map( x => {
-      (makeMatcher(x._1), x._2)
-    })
-  }
-
-  private def makeMatcher(word : String) : Regex = {
-    ("(\\W?)" + word + "(\\W|\\z)").r
-  }
-
-  def bareWordList : Map[String, String] = {
-    val lines = fromFile("words.csv", "utf-8").mkString.split("\n")
-    lines.map(t => t.split(",")(0) -> t.split(",")(1)).toMap
-  }
-}
-
-
-class TestCensor extends FunSpec with ShouldMatchers with Censor {
+class TestCensor extends FunSpec with ShouldMatchers with StaticCensor {
   describe("A censor") {
     describe("when given an empty string") {
       it("should return an empty string") {
@@ -132,7 +114,7 @@ class TestCensor extends FunSpec with ShouldMatchers with Censor {
   }
 }
 
-class TestCensorFromFile extends FunSpec with ShouldMatchers with CensorFromFile {
+class TestCensorFromFile extends FunSpec with ShouldMatchers with FileCensor {
   describe("A censor") {
     describe("that reads from a file") {
       it("should have a map that replaces Darn with Beanz") {
