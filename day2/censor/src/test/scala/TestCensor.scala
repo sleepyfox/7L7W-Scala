@@ -49,11 +49,7 @@ trait Censor {
   }
 }
 
-trait StaticCensor extends Censor with staticWords {}
-
-trait FileCensor extends Censor with wordsFromFile {}
-
-class TestCensor extends FunSpec with ShouldMatchers with StaticCensor {
+class TestBasicCensor extends FunSpec with ShouldMatchers with Censor with staticWords {
   describe("A censor") {
     describe("when given an empty string") {
       it("should return an empty string") {
@@ -107,14 +103,14 @@ class TestCensor extends FunSpec with ShouldMatchers with StaticCensor {
 
     describe("when the string ends with a curse word") {
       it("should return the original string") {
-          censorString("Please don't shoot") should
-            be ("Please don't pucky")
+          censorString("Please don't offshoot") should
+            be ("Please don't offshoot")
       }
     }
   }
 }
 
-class TestCensorFromFile extends FunSpec with ShouldMatchers with FileCensor {
+class TestCensorFromFile extends FunSpec with ShouldMatchers with Censor with wordsFromFile {
   describe("A censor") {
     describe("that reads from a file") {
       it("should have a map that replaces Darn with Beanz") {
