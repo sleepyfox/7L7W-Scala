@@ -24,12 +24,12 @@ trait Censor {
   def bareWordList : Map[String, String]
 
   def censorString(string: String) : String = {
-    fn(wordList, string)
+    replaceSwearWords(wordList, string)
   }
 
-  private def fn(wordList : Map[Regex, String], string : String) : String = wordList.size match {
+  private def replaceSwearWords(wordList : Map[Regex, String], string : String) : String = wordList.size match {
     case 0 => string
-    case _ => fn(wordList.tail, doReplace(wordList.head, string))
+    case _ => replaceSwearWords(wordList.tail, doReplace(wordList.head, string))
   }
 
   private def doReplace(replacementRegexTuple: (Regex, String), string: String) : String = {
@@ -40,12 +40,11 @@ trait Censor {
 
   private def wordList : Map[Regex, String] = {
     bareWordList.map( x => {
-      (makeMatcher(x._1), x._2)
+      // Match either a whole word, 
+      // a string starting with a whole word, 
+      // or a string ending in a whole word
+      (("(\\W|^)" + x._1 + "(\\W|$)").r, x._2)
     })
-  }
-
-  private def makeMatcher(word : String) : Regex = {
-    ("(\\W?)" + word + "(\\W|\\z)").r
   }
 }
 
@@ -170,8 +169,8 @@ class TestCensorFromFile extends FunSpec with ShouldMatchers with Censor with wo
 
     describe("when the string ends with a curse word") {
       it("should return the original string") {
-          censorString("Please don't shoot") should
-            be ("Please don't pucki")
+          censorString("Please don't offshoot") should
+            be ("Please don't offshoot")
       }
     }
   }
