@@ -3,47 +3,41 @@ import scala.util.matching.Regex
 import scala.io.Source.fromFile 
 
 trait staticWords {
-  def bareWordList : Map[String, String] = {
-    Map(
-      "Shoot" -> "Pucky",
-      "shoot" -> "pucky",
-      "Darn"  -> "Beans",
-      "darn"  -> "beans"
+  def bareWordList : List[(String, String)] = {
+    List(
+      ("Shoot", "Pucky"),
+      ("shoot", "pucky"),
+      ("Darn",  "Beans"),
+      ("darn",  "beans")
     )
   }
 }
 
 trait wordsFromFile {
-  def bareWordList : Map[String, String] = {
-    val lines = fromFile("words.csv", "utf-8").mkString.split("\n")
-    lines.map(t => t.split(",")(0) -> t.split(",")(1)).toMap
+  def bareWordList : List[(String, String)] = {
+    val lines = List.fromArray(fromFile("words.csv", "utf-8").mkString.split("\n"))
+    lines.map(t => (t.split(",")(0), t.split(",")(1)))
   }
 }
 
+
 trait Censor {
-  def bareWordList : Map[String, String]
+  def bareWordList : List[(String, String)]
 
   def censorString(string: String) : String = {
-    replaceSwearWords(wordList, string)
+    replaceSwearWords(bareWordList, string)
   }
 
-  private def replaceSwearWords(wordList : Map[Regex, String], string : String) : String = wordList.size match {
+  private def replaceSwearWords(wordList : List[(String, String)], string : String) : String = wordList.size match {
     case 0 => string
     case _ => replaceSwearWords(wordList.tail, doReplace(wordList.head, string))
   }
 
-  private def doReplace(replacementRegexTuple: (Regex, String), string: String) : String = {
-    replacementRegexTuple._1.replaceAllIn(string, m => {
-      m.group(1) + replacementRegexTuple._2 + m.group(2)
-    })
-  }
-
-  private def wordList : Map[Regex, String] = {
-    bareWordList.map( x => {
-      // Match either a whole word, 
-      // a string starting with a whole word, 
-      // or a string ending in a whole word
-      (("(\\W|^)" + x._1 + "(\\W|$)").r, x._2)
+  private def doReplace(replacementTuple: (String, String), string: String) : String = {
+    // regex to match a whole word, or a string starting or ending with a word
+    val matcher = ("(\\W|^)" + replacementTuple._1 + "(\\W|$)").r
+    matcher.replaceAllIn(string, m => {
+      m.group(1) + replacementTuple._2 + m.group(2)
     })
   }
 }
@@ -113,7 +107,7 @@ class TestCensorFromFile extends FunSpec with ShouldMatchers with Censor with wo
   describe("A censor") {
     describe("that reads from a file") {
       it("should have a map that replaces Darn with Beanz") {
-        bareWordList("Darn") should be ("Beanz") 
+        bareWordList(2) should be ("Darn","Beanz")
       }
     }
 
