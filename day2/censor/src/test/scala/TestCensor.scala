@@ -15,7 +15,7 @@ trait staticWords {
 
 trait wordsFromFile {
   def bareWordList : List[(String, String)] = {
-    val lines = List.fromArray(fromFile("words.csv", "utf-8").mkString.split("\n"))
+    val lines = fromFile("words.csv", "utf-8").mkString.split("\n").toList
     lines.map(t => (t.split(",")(0), t.split(",")(1)))
   }
 }
@@ -29,16 +29,18 @@ trait Censor {
   }
 
   private def replaceSwearWords(wordList : List[(String, String)], string : String) : String = wordList.size match {
-    case 0 => string
+    case 0 => string // guard for empty string case
+    // else recurse over all word replacement pairs
     case _ => replaceSwearWords(wordList.tail, doReplace(wordList.head, string))
   }
 
-  private def doReplace(replacementTuple: (String, String), string: String) : String = {
-    // regex to match a whole word, or a string starting or ending with a word
-    val matcher = ("(\\W|^)" + replacementTuple._1 + "(\\W|$)").r
-    matcher.replaceAllIn(string, m => {
-      m.group(1) + replacementTuple._2 + m.group(2)
-    })
+  private def doReplace(wordPair: (String, String), string: String) : String = {
+    // Regex to match a whole word, 
+    //   or a string starting or ending with a word
+    // Group 1 matches whitespace or word delimiter before word
+    // Group 2 matches whitespace or word delimiter after word
+    val reg = ("(\\W|^)" + wordPair._1 + "(\\W|$)").r
+    reg.replaceAllIn(string, m => m.group(1) + wordPair._2 + m.group(2))
   }
 }
 
@@ -107,7 +109,8 @@ class TestCensorFromFile extends FunSpec with ShouldMatchers with Censor with wo
   describe("A censor") {
     describe("that reads from a file") {
       it("should have a map that replaces Darn with Beanz") {
-        bareWordList(2) should be ("Darn","Beanz")
+        val result = bareWordList.filter(_._1 == "Darn")(0)._2
+        result should be ("Beanz")
       }
     }
 
