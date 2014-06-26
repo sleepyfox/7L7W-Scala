@@ -1,6 +1,19 @@
 # Scala - day 2
 Scala learnings - tips and tricks
 
+Note to self: functions without parameters don't need parentheses e.g.
+
+	scala> def three = 1 + 2
+	three: Int
+
+	scala> three
+	res0: Int = 3
+
+Other note to self: beware functions like split that are a hang-over from Java and return an Array (mutable) rather than a List (immutable). In order to translate just use the Array.toList method:
+
+	scala> val myListOfWords = "cat dog mouse".split(" ").toList
+	myListOfWords: List[String] = List(cat, dog, mouse)
+
 ## Find:
 ### A discussion on how to use Scala files
 This simple blog post has a good example of using the Source library to read from and write to a file [link](http://alvinalexander.com/scala/scala-how-open-read-files-scala-examples) and this stackOverflow question has some good answers, again using Source [link](http://stackoverflow.com/questions/1284423/read-entire-file-in-scala)
